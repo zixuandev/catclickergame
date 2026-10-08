@@ -276,7 +276,7 @@
       </div>
 
       <div class="collection">
-        <h2>Cat Collection <small id="dexCount"></small></h2>
+        <h2>Cat collection <small id="dexCount"></small></h2>
         <ul class="dex" id="dex"></ul>
       </div>
     </section>
@@ -293,6 +293,41 @@
       </div>
     </section>
   </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const app = initializeApp({
+      apiKey: "AIzaSyBh6pSkV40G2fV3WImjIYD7Ln7VUWrGuW8",
+      authDomain: "cat-clicker-f806a.firebaseapp.com",
+      projectId: "cat-clicker-f806a",
+      storageBucket: "cat-clicker-f806a.firebasestorage.app",
+      messagingSenderId: "526792012165",
+      appId: "1:526792012165:web:e32f452fa54d222f8254ec"
+    });
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // Each player is signed in anonymously and gets their own save document.
+    const ready = new Promise(function (res) {
+      onAuthStateChanged(auth, function (u) { if (u) res(u); });
+    });
+    signInAnonymously(auth).catch(function (e) { console.warn("Cloud sign-in failed", e); });
+
+    window.cloud = {
+      save: async function (state) {
+        const u = await ready;
+        await setDoc(doc(db, "saves", u.uid), state);
+      },
+      load: async function () {
+        const u = await ready;
+        const snap = await getDoc(doc(db, "saves", u.uid));
+        return snap.exists() ? snap.data() : null;
+      }
+    };
+  </script>
 
   <script>
     (function () {
@@ -324,12 +359,12 @@
 
       // To add an upgrade, add one line here. "icon" is what appears in the cat room.
       var upgrades = [
-        { name: "Bigger Bowl",   icon: "\uD83E\uDD63", desc: "+1 fish per click",     base: 10,    click: 1, fps: 0 },
-        { name: "Yarn Toy",      icon: "\uD83E\uDDF6", desc: "+1 fish per second",    base: 50,    click: 0, fps: 1 },
-        { name: "Fancy Treats",  icon: "\uD83C\uDF64", desc: "+5 fish per click",     base: 200,   click: 5, fps: 0 },
-        { name: "Cat Tree",      icon: "\uD83C\uDF32", desc: "+8 fish per second",    base: 500,   click: 0, fps: 8 },
-        { name: "Kitten Helper", icon: "\uD83D\uDC31", desc: "+40 fish per second",   base: 3000,  click: 0, fps: 40 },
-        { name: "Fishing Boat",  icon: "\u26F5",       desc: "+200 fish per second",  base: 20000, click: 0, fps: 200 }
+        { name: "Bigger bowl",   icon: "\uD83E\uDD63", desc: "+1 fish per click",     base: 10,    click: 1, fps: 0 },
+        { name: "Yarn toy",      icon: "\uD83E\uDDF6", desc: "+1 fish per second",    base: 50,    click: 0, fps: 1 },
+        { name: "Fancy treats",  icon: "\uD83C\uDF64", desc: "+5 fish per click",     base: 200,   click: 5, fps: 0 },
+        { name: "Cat tree",      icon: "\uD83C\uDF32", desc: "+8 fish per second",    base: 500,   click: 0, fps: 8 },
+        { name: "Kitten helper", icon: "\uD83D\uDC31", desc: "+40 fish per second",   base: 3000,  click: 0, fps: 40 },
+        { name: "Fishing boat",  icon: "\u26F5",       desc: "+200 fish per second",  base: 20000, click: 0, fps: 200 }
       ];
 
       var petLines = ["Meow!", "Purr...", "More fish!", "Mrrp?", "Nyan!", "Nice pets!"];
@@ -528,7 +563,7 @@
         el.bonus.textContent = "x" + multiplier().toFixed(1);
         el.rebirthInfo.textContent = "Rebirths: " + state.rebirths + (canRebirth()
           ? " | Ready! Next rebirth: x" + (multiplier() + REBIRTH_BONUS).toFixed(1) + " fish"
-          : " | Reach " + cats[cats.length - 1].name + " to Rebirth");
+          : " | Reach " + cats[cats.length - 1].name + " to rebirth");
         el.rebirth.disabled = !canRebirth();
         rows.forEach(function (row, i) {
           var c = cost(i);
@@ -588,6 +623,7 @@
         renderRoom(i);
         render();
         save();
+        cloudSave();
       }
 
       // Passive fish: tick 10 times a second so the counter moves smoothly.
@@ -598,6 +634,11 @@
 
       function save() {
         try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (e) { /* storage unavailable */ }
+      }
+
+      // Cloud backup (Firebase). Safe to fail: the game keeps working from localStorage.
+      function cloudSave() {
+        if (window.cloud) window.cloud.save(state).catch(function () { /* offline or blocked */ });
       }
 
       function load() {
@@ -628,9 +669,11 @@
         renderRoom();
         render();
         save();
+        cloudSave();
       });
 
       setInterval(save, 5000);
+      setInterval(cloudSave, 30000); // every 30s keeps you well inside the free write quota
       window.addEventListener("beforeunload", save);
 
       load();
@@ -638,6 +681,29 @@
       renderCat();
       renderRoom();
       render();
+
+      // Once the page is fully loaded, pull the cloud save and keep whichever has more progress.
+      window.addEventListener("load", function () {
+        if (!window.cloud) return;
+        window.cloud.load().then(function (data) {
+          if (!data) { cloudSave(); return; }
+          var cloudScore = (Number(data.rebirths) || 0) * 1e9 + (Number(data.clicks) || 0);
+          var localScore = state.rebirths * 1e9 + state.clicks;
+          if (cloudScore <= localScore) { cloudSave(); return; }
+          state.fish = Number(data.fish) || 0;
+          state.clicks = Number(data.clicks) || 0;
+          state.rebirths = Number(data.rebirths) || 0;
+          upgrades.forEach(function (u, i) {
+            state.owned[i] = Array.isArray(data.owned) ? (Number(data.owned[i]) || 0) : 0;
+          });
+          stageIndex = stageFor(state.clicks);
+          say("Cloud save loaded!");
+          renderCat();
+          renderRoom();
+          render();
+          save();
+        }).catch(function () { /* offline: keep the local save */ });
+      });
     })();
   </script>
 </body>
