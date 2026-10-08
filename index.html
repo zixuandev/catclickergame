@@ -60,7 +60,7 @@
       box-shadow: 8px 8px 0 var(--edge);
     }
 
-    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; text-align: center; }
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; text-align: center; }
     .stat { padding: 6px 4px; background: var(--bg); border: 3px solid var(--edge); }
     .stat b { display: block; font-family: "Pixelify Sans", monospace; font-size: 1.35rem; color: var(--moon); line-height: 1.2; }
     .stat span { font-size: 0.85rem; color: var(--muted); }
@@ -173,13 +173,19 @@
       font-weight: 700;
       cursor: pointer;
     }
-    .reset:hover { background: var(--moon); }
+    .reset:hover:not(:disabled) { background: var(--moon); }
+    .reset:disabled { opacity: 0.5; cursor: not-allowed; }
+    .tools .info { display: grid; gap: 2px; }
 
     @media (max-width: 720px) {
       .wrap { padding: 16px; }
       .arena { flex-direction: column; }
       .cat-col { flex-basis: auto; max-width: 320px; }
       .shop { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 480px) {
+      .stats { grid-template-columns: repeat(2, 1fr); }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -197,6 +203,7 @@
         <div class="stat"><b id="fish">0</b><span>Fish</span></div>
         <div class="stat"><b id="perClick">1</b><span>per click</span></div>
         <div class="stat"><b id="fps">0</b><span>per second</span></div>
+        <div class="stat"><b id="bonus">x1</b><span>rebirth bonus</span></div>
       </div>
 
       <p class="bubble" id="bubble" aria-live="polite">Pet me to earn fish!</p>
@@ -223,8 +230,11 @@
       <h2>Shop</h2>
       <ul class="shop" id="shop"></ul>
       <div class="tools">
-        <small>Your progress saves automatically in this browser.</small>
-        <button class="reset" id="reset" type="button">Reset game</button>
+        <div class="info">
+          <small id="rebirthInfo"></small>
+          <small>Your progress saves automatically in this browser.</small>
+        </div>
+        <button class="reset" id="rebirth" type="button">Rebirth</button>
       </div>
     </section>
   </div>
@@ -235,6 +245,8 @@
       var SAVE_KEY = "catClickerSave4";
       // Raised from 1.15 so shop prices climb faster with each purchase.
       var GROWTH = 1.2;
+      // Each rebirth adds this much to every fish you earn (0.5 = +50% per rebirth).
+      var REBIRTH_BONUS = 0.5;
       var MAX_ICONS = 10; // icons drawn per item before it switches to a count
 
       // Each cat has its own colours. "at" is the number of clicks needed to reach it.
@@ -304,16 +316,16 @@
         return s + "</svg>";
       }
 
-      function fresh() { return { fish: 0, clicks: 0, owned: upgrades.map(function () { return 0; }) }; }
+      function fresh() { return { fish: 0, clicks: 0, rebirths: 0, owned: upgrades.map(function () { return 0; }) }; }
       var state = fresh();
       var stageIndex = 0;
 
       var $ = function (id) { return document.getElementById(id); };
       var el = {
-        fish: $("fish"), perClick: $("perClick"), fps: $("fps"), bubble: $("bubble"),
+        fish: $("fish"), perClick: $("perClick"), fps: $("fps"), bonus: $("bonus"), bubble: $("bubble"),
         stageBox: $("stageBox"), cat: $("cat"), name: $("catName"), stage: $("stage"),
         barFill: $("barFill"), barWrap: $("barWrap"), next: $("next"),
-        items: $("items"), empty: $("empty"), shop: $("shop"), reset: $("reset")
+        items: $("items"), empty: $("empty"), shop: $("shop"), rebirth: $("rebirth"), rebirthInfo: $("rebirthInfo")
       };
 
       function pick(list) { return list[Math.floor(Math.random() * list.length)]; }
@@ -329,16 +341,18 @@
       }
 
       function cost(i) { return Math.ceil(upgrades[i].base * Math.pow(GROWTH, state.owned[i])); }
+      function multiplier() { return 1 + REBIRTH_BONUS * state.rebirths; }
       function perClick() {
         var t = 1;
         upgrades.forEach(function (u, i) { t += u.click * state.owned[i]; });
-        return t;
+        return Math.ceil(t * multiplier());
       }
       function perSecond() {
         var t = 0;
         upgrades.forEach(function (u, i) { t += u.fps * state.owned[i]; });
-        return t;
+        return t * multiplier();
       }
+      function canRebirth() { return stageIndex === cats.length - 1; }
       function stageFor(clicks) {
         var s = 0;
         cats.forEach(function (c, i) { if (clicks >= c.at) s = i; });
@@ -419,6 +433,11 @@
         el.fish.textContent = fmt(state.fish);
         el.perClick.textContent = fmt(perClick());
         el.fps.textContent = fmt(perSecond());
+        el.bonus.textContent = "x" + multiplier().toFixed(1);
+        el.rebirthInfo.textContent = "Rebirths: " + state.rebirths + (canRebirth()
+          ? " | Ready! Next rebirth: x" + (multiplier() + REBIRTH_BONUS).toFixed(1) + " fish"
+          : " | Reach " + cats[cats.length - 1].name + " to rebirth");
+        el.rebirth.disabled = !canRebirth();
         rows.forEach(function (row, i) {
           var c = cost(i);
           row.cost.textContent = fmt(c) + " fish";
@@ -496,6 +515,7 @@
           var data = JSON.parse(raw);
           if (typeof data.fish === "number") state.fish = data.fish;
           if (typeof data.clicks === "number") state.clicks = data.clicks;
+          if (typeof data.rebirths === "number") state.rebirths = data.rebirths;
           if (Array.isArray(data.owned)) {
             upgrades.forEach(function (u, i) { state.owned[i] = Number(data.owned[i]) || 0; });
           }
@@ -503,11 +523,15 @@
         } catch (e) { /* ignore a broken save */ }
       }
 
-      el.reset.addEventListener("click", function () {
-        if (!confirm("Reset all your fish, upgrades and cats?")) return;
+      el.rebirth.addEventListener("click", function () {
+        if (!canRebirth()) return;
+        if (!confirm("Rebirth? You lose all fish, upgrades and cat progress, but earn a permanent +" +
+          Math.round(REBIRTH_BONUS * 100) + "% fish bonus.")) return;
+        var rebirths = state.rebirths + 1;
         state = fresh();
+        state.rebirths = rebirths;
         stageIndex = 0;
-        say("Fresh start! Pet me to earn fish!");
+        say("Reborn! Fish bonus is now x" + multiplier().toFixed(1) + "!");
         renderCat();
         renderRoom();
         render();
