@@ -276,7 +276,7 @@
       </div>
 
       <div class="collection">
-        <h2>Cat collection <small id="dexCount"></small></h2>
+        <h2>Cat Collection <small id="dexCount"></small></h2>
         <ul class="dex" id="dex"></ul>
       </div>
     </section>
@@ -324,12 +324,12 @@
 
       // To add an upgrade, add one line here. "icon" is what appears in the cat room.
       var upgrades = [
-        { name: "Bigger bowl",   icon: "\uD83E\uDD63", desc: "+1 fish per click",     base: 10,    click: 1, fps: 0 },
-        { name: "Yarn toy",      icon: "\uD83E\uDDF6", desc: "+1 fish per second",    base: 50,    click: 0, fps: 1 },
-        { name: "Fancy treats",  icon: "\uD83C\uDF64", desc: "+5 fish per click",     base: 200,   click: 5, fps: 0 },
-        { name: "Cat tree",      icon: "\uD83C\uDF32", desc: "+8 fish per second",    base: 500,   click: 0, fps: 8 },
-        { name: "Kitten helper", icon: "\uD83D\uDC31", desc: "+40 fish per second",   base: 3000,  click: 0, fps: 40 },
-        { name: "Fishing boat",  icon: "\u26F5",       desc: "+200 fish per second",  base: 20000, click: 0, fps: 200 }
+        { name: "Bigger Bowl",   icon: "\uD83E\uDD63", desc: "+1 fish per click",     base: 10,    click: 1, fps: 0 },
+        { name: "Yarn Toy",      icon: "\uD83E\uDDF6", desc: "+1 fish per second",    base: 50,    click: 0, fps: 1 },
+        { name: "Fancy Treats",  icon: "\uD83C\uDF64", desc: "+5 fish per click",     base: 200,   click: 5, fps: 0 },
+        { name: "Cat Tree",      icon: "\uD83C\uDF32", desc: "+8 fish per second",    base: 500,   click: 0, fps: 8 },
+        { name: "Kitten Helper", icon: "\uD83D\uDC31", desc: "+40 fish per second",   base: 3000,  click: 0, fps: 40 },
+        { name: "Fishing Boat",  icon: "\u26F5",       desc: "+200 fish per second",  base: 20000, click: 0, fps: 200 }
       ];
 
       var petLines = ["Meow!", "Purr...", "More fish!", "Mrrp?", "Nyan!", "Nice pets!"];
@@ -528,7 +528,7 @@
         el.bonus.textContent = "x" + multiplier().toFixed(1);
         el.rebirthInfo.textContent = "Rebirths: " + state.rebirths + (canRebirth()
           ? " | Ready! Next rebirth: x" + (multiplier() + REBIRTH_BONUS).toFixed(1) + " fish"
-          : " | Reach " + cats[cats.length - 1].name + " to rebirth");
+          : " | Reach " + cats[cats.length - 1].name + " to Rebirth");
         el.rebirth.disabled = !canRebirth();
         rows.forEach(function (row, i) {
           var c = cost(i);
