@@ -231,8 +231,10 @@
 
   <script>
     (function () {
-      var SAVE_KEY = "catClickerSave3";
-      var GROWTH = 1.15;
+      // Bumped from catClickerSave3 because the evolution thresholds changed.
+      var SAVE_KEY = "catClickerSave4";
+      // Raised from 1.15 so shop prices climb faster with each purchase.
+      var GROWTH = 1.2;
       var MAX_ICONS = 10; // icons drawn per item before it switches to a count
 
       // Each cat has its own colours. "at" is the number of clicks needed to reach it.
@@ -241,15 +243,15 @@
       var cats = [
         { name: "Minimeow", at: 0, line: "#0f0d26", fur: "#b8a06c", dark: "#5a4630", light: "#efe3c8", paw: "#b8a06c",
           ear: "#d9a28f", nose: "#d98a7a", eye: "#e5c14a", eyeH: 2, stripes: 1 },
-        { name: "Mimi", at: 50, line: "#0f0d26", fur: "#80829a", light: "#b9bbcc", paw: "#80829a",
+        { name: "Mimi", at: 100, line: "#0f0d26", fur: "#80829a", light: "#b9bbcc", paw: "#80829a",
           ear: "#5b5d70", nose: "#4b4b5e", eye: "#e5c14a", eyeH: 2, tufts: 1, chest: 1 },
-        { name: "Kuro", at: 150, line: "#0f0d26", fur: "#2e2e3d", hi: "#47475f", paw: "#2e2e3d",
+        { name: "Kuro", at: 350, line: "#0f0d26", fur: "#2e2e3d", hi: "#47475f", paw: "#2e2e3d",
           ear: "#5a4658", nose: "#6b5b6b", eye: "#e5c14a", eyeH: 2 },
-        { name: "Taro", at: 400, line: "#0f0d26", fur: "#232331", hi: "#3d3d56", paw: "#232331",
+        { name: "Taro", at: 900, line: "#0f0d26", fur: "#232331", hi: "#3d3d56", paw: "#232331",
           ear: "#4a3a4a", nose: "#4a3a4a", eye: "#f0a830", eyeH: 2, tufts: 1 },
-        { name: "Ah Wang", at: 900, line: "#0f0d26", fur: "#a8824f", dark: "#4a3520", light: "#e8d9bd", paw: "#a8824f",
+        { name: "Ah Wang", at: 2000, line: "#0f0d26", fur: "#a8824f", dark: "#4a3520", light: "#e8d9bd", paw: "#a8824f",
           ear: "#d9a28f", nose: "#d98a7a", eye: "#f2e08a", eyeH: 2, stripes: 1 },
-        { name: "Fatty Cat", at: 2000, line: "#0f0d26", fur: "#6d6556", dark: "#2c2822", light: "#f4f1ea", paw: "#f4f1ea",
+        { name: "Fatty Cat", at: 4500, line: "#0f0d26", fur: "#6d6556", dark: "#2c2822", light: "#f4f1ea", paw: "#f4f1ea",
           ear: "#d9a28f", nose: "#d98a7a", eye: "#9ab04a", eyeH: 2, stripes: 1, blaze: 1, chest: 1, wide: 1 }
       ];
 
