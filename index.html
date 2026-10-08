@@ -145,6 +145,39 @@
     .row .count { font-family: "Pixelify Sans", monospace; color: var(--mint); white-space: nowrap; }
     @keyframes drop { from { transform: translateY(-40px) scale(1.6); opacity: 0; } to { transform: none; opacity: 1; } }
 
+    /* Cat collection */
+    .collection { margin-top: 24px; }
+    .collection h2 { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 1.25rem; }
+    .collection h2 small { font-family: "Nunito", system-ui, sans-serif; font-size: 0.9rem; font-weight: 600; color: var(--mint); }
+    .dex { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 0; padding: 0; list-style: none; }
+    .dex-item {
+      padding: 8px;
+      background: var(--bg);
+      border: 3px solid var(--edge);
+      text-align: center;
+      line-height: 1.3;
+    }
+    .dex-item.current { border-color: var(--moon); box-shadow: 3px 3px 0 var(--moon); }
+    .dex-item .art { width: 100%; max-width: 96px; margin: 0 auto 6px; }
+    .dex-item .mystery {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      max-width: 96px;
+      aspect-ratio: 1;
+      margin: 0 auto 6px;
+      background: var(--panel);
+      font-family: "Pixelify Sans", monospace;
+      font-weight: 700;
+      font-size: 2.6rem;
+      color: var(--muted);
+    }
+    .dex-item .dname { display: block; font-family: "Pixelify Sans", monospace; font-weight: 700; font-size: 1.05rem; }
+    .dex-item .dinfo { display: block; font-size: 0.8rem; color: var(--muted); }
+    .dex-item.locked .dname { color: var(--muted); }
+    .dex-item.current .dinfo { color: var(--moon); }
+
     /* Shop */
     .shop { display: grid; grid-template-columns: 1fr; gap: 12px; margin: 0; padding: 0; list-style: none; }
     .item {
@@ -201,6 +234,8 @@
 
     @media (max-width: 480px) {
       .stats { grid-template-columns: repeat(2, 1fr); }
+      .dex { gap: 8px; }
+      .dex-item { padding: 6px; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -238,6 +273,11 @@
           <p class="empty" id="empty">Buy something from the shop and it shows up here.</p>
           <div id="items"></div>
         </div>
+      </div>
+
+      <div class="collection">
+        <h2>Cat collection <small id="dexCount"></small></h2>
+        <ul class="dex" id="dex"></ul>
       </div>
     </section>
 
@@ -340,7 +380,8 @@
         fish: $("fish"), perClick: $("perClick"), fps: $("fps"), bonus: $("bonus"), bubble: $("bubble"),
         stageBox: $("stageBox"), cat: $("cat"), name: $("catName"), stage: $("stage"),
         barFill: $("barFill"), barWrap: $("barWrap"), next: $("next"),
-        items: $("items"), empty: $("empty"), shop: $("shop"), rebirth: $("rebirth"), rebirthInfo: $("rebirthInfo")
+        items: $("items"), empty: $("empty"), shop: $("shop"), rebirth: $("rebirth"), rebirthInfo: $("rebirthInfo"),
+        dex: $("dex"), dexCount: $("dexCount")
       };
 
       function pick(list) { return list[Math.floor(Math.random() * list.length)]; }
@@ -422,12 +463,48 @@
         el.empty.hidden = any;
       }
 
+      // Cat collection: with 0 rebirths only the cats you have reached show up,
+      // the rest are "?". After your first rebirth every cat is revealed.
+      function renderDex() {
+        var revealAll = state.rebirths >= 1;
+        var found = 0;
+        el.dex.innerHTML = "";
+        cats.forEach(function (c, i) {
+          var open = revealAll || i <= stageIndex;
+          if (i <= stageIndex) found++;
+          var li = document.createElement("li");
+          li.className = "dex-item" + (open ? "" : " locked") + (i === stageIndex ? " current" : "");
+          var name = document.createElement("span");
+          name.className = "dname";
+          var info = document.createElement("span");
+          info.className = "dinfo";
+          if (open) {
+            li.innerHTML = catSvg(c);
+            name.textContent = c.name;
+            info.textContent = i === stageIndex ? "Current" : (i < stageIndex ? "Unlocked" : c.at + " clicks");
+          } else {
+            var q = document.createElement("div");
+            q.className = "mystery";
+            q.textContent = "?";
+            q.setAttribute("aria-hidden", "true");
+            li.appendChild(q);
+            name.textContent = "???";
+            info.textContent = "Locked";
+          }
+          li.appendChild(name);
+          li.appendChild(info);
+          el.dex.appendChild(li);
+        });
+        el.dexCount.textContent = found + " / " + cats.length + " unlocked";
+      }
+
       function renderCat() {
         var c = cats[stageIndex];
         el.name.textContent = c.name;
         el.stage.textContent = "Cat " + (stageIndex + 1) + " of " + cats.length;
         el.cat.innerHTML = catSvg(c);
         el.cat.setAttribute("aria-label", "Pet " + c.name + " to earn fish");
+        renderDex();
       }
 
       function renderProgress() {
@@ -546,7 +623,7 @@
         state = fresh();
         state.rebirths = rebirths;
         stageIndex = 0;
-        say("Reborn! Fish bonus is now x" + multiplier().toFixed(1) + "!");
+        say("Reborn! Fish bonus is now x" + multiplier().toFixed(1) + "! All cats are now visible in your collection.");
         renderCat();
         renderRoom();
         render();
