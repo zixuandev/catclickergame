@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cat Clicker</title>
+  <meta name="description" content="Pet the cat to earn fish, buy upgrades and evolve your cat through six real rescue cats.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #1e1b3f;
+      --panel: #2c2860;
+      --panel-2: #3a3580;
+      --ink: #f3efff;
+      --muted: #c3bdf0;
+      --moon: #ffd166;
+      --fish: #ff8fab;
+      --mint: #7ee0b5;
+      --edge: #0f0d26;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
+      font-size: 1.0625rem;
+      line-height: 1.5;
+      background-color: var(--bg);
+      background-image:
+        radial-gradient(var(--muted) 1px, transparent 1.5px),
+        radial-gradient(var(--moon) 1px, transparent 1.5px);
+      background-size: 90px 90px, 140px 140px;
+      background-position: 10px 20px, 60px 70px;
+      background-attachment: fixed;
+    }
+
+    button { font-family: inherit; color: inherit; }
+    button:focus-visible { outline: 3px solid var(--mint); outline-offset: 3px; }
+
+    .wrap { max-width: 900px; margin: 0 auto; padding: 24px; display: grid; gap: 28px; }
+
+    h1, h2, .pixel { font-family: "Pixelify Sans", monospace; }
+    h1 {
+      margin: 0;
+      font-size: clamp(2.2rem, 8vw, 3.4rem);
+      line-height: 1;
+      text-shadow: 4px 4px 0 var(--edge);
+    }
+    h2 { margin: 0 0 14px; font-size: 1.5rem; }
+
+    .panel {
+      padding: 20px;
+      background: var(--panel);
+      border: 4px solid var(--edge);
+      box-shadow: 8px 8px 0 var(--edge);
+    }
+
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; text-align: center; }
+    .stat { padding: 6px 4px; background: var(--bg); border: 3px solid var(--edge); }
+    .stat b { display: block; font-family: "Pixelify Sans", monospace; font-size: 1.35rem; color: var(--moon); line-height: 1.2; }
+    .stat span { font-size: 0.85rem; color: var(--muted); }
+
+    .bubble {
+      min-height: 2.8em;
+      margin: 0 0 16px;
+      padding: 6px 12px;
+      background: var(--ink);
+      color: var(--edge);
+      border: 3px solid var(--edge);
+      font-family: "Pixelify Sans", monospace;
+    }
+
+    /* Cat and room side by side */
+    .arena { display: flex; gap: 20px; align-items: stretch; }
+    .cat-col { flex: 0 0 280px; }
+    .cat-name { margin: 0 0 8px; font-family: "Pixelify Sans", monospace; font-weight: 700; font-size: 1.4rem; line-height: 1.2; }
+    .cat-name small { display: block; font-size: 0.85rem; font-weight: 500; color: var(--mint); }
+
+    .stage { position: relative; }
+    .cat-btn { display: block; width: 100%; padding: 0; background: none; border: 0; cursor: pointer; line-height: 0; -webkit-tap-highlight-color: transparent; user-select: none; }
+    .cat-btn img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      background: var(--bg);
+      border: 4px solid var(--edge);
+      box-shadow: 6px 6px 0 var(--moon);
+    }
+    .cat-btn:active img { transform: scale(0.97); }
+    .cat-btn.evolve img { animation: flash 0.9s steps(6); }
+    @keyframes flash { 0%, 100% { filter: none; } 20%, 60% { filter: brightness(3) saturate(0); } 40%, 80% { filter: brightness(0.3); } }
+
+    .pop {
+      position: absolute;
+      pointer-events: none;
+      font-family: "Pixelify Sans", monospace;
+      font-weight: 700;
+      font-size: 1.4rem;
+      color: var(--moon);
+      text-shadow: 2px 2px 0 var(--edge);
+      animation: float 0.9s ease-out forwards;
+    }
+    @keyframes float { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-70px); } }
+
+    .bar { height: 18px; margin-top: 16px; background: var(--bg); border: 3px solid var(--edge); }
+    .bar i { display: block; height: 100%; width: 0; background: var(--mint); }
+    .next { margin: 6px 0 0; font-size: 0.9rem; color: var(--muted); }
+
+    .room {
+      flex: 1;
+      min-width: 0;
+      padding: 14px;
+      background: var(--bg);
+      border: 4px solid var(--edge);
+      background-image: repeating-linear-gradient(0deg, transparent 0 31px, rgba(195,189,240,0.12) 31px 32px);
+    }
+    .room h2 { font-size: 1.15rem; margin-bottom: 10px; color: var(--moon); }
+    .room .empty { margin: 0; color: var(--muted); font-size: 0.95rem; }
+    .row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .row .icons { display: flex; flex-wrap: wrap; gap: 2px; font-size: 1.7rem; line-height: 1.2; }
+    .row .icons span { display: inline-block; }
+    .row .icons .new { animation: drop 0.5s steps(5); }
+    .row .count { font-family: "Pixelify Sans", monospace; color: var(--mint); white-space: nowrap; }
+    @keyframes drop { from { transform: translateY(-40px) scale(1.6); opacity: 0; } to { transform: none; opacity: 1; } }
+
+    /* Shop */
+    .shop { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0; padding: 0; list-style: none; }
+    .item {
+      display: flex;
+      width: 100%;
+      height: 100%;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      background: var(--panel-2);
+      border: 4px solid var(--edge);
+      box-shadow: 4px 4px 0 var(--edge);
+      text-align: left;
+      cursor: pointer;
+    }
+    .item:hover:not(:disabled) { background: var(--bg); border-color: var(--moon); }
+    .item:active:not(:disabled) { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--edge); }
+    .item:disabled { opacity: 0.55; cursor: not-allowed; }
+    .item .ico { font-size: 1.8rem; line-height: 1; }
+    .item .name { display: block; font-family: "Pixelify Sans", monospace; font-weight: 700; font-size: 1.15rem; }
+    .item .desc { display: block; font-size: 0.9rem; color: var(--muted); }
+    .item .cost { display: block; font-family: "Pixelify Sans", monospace; color: var(--moon); white-space: nowrap; text-align: right; }
+    .item .owned { display: block; font-size: 0.9rem; color: var(--mint); text-align: right; }
+    .item .left { display: flex; align-items: center; gap: 10px; }
+
+    .tools { display: flex; justify-content: space-between; align-items: center; margin-top: 18px; gap: 12px; flex-wrap: wrap; }
+    .tools small { color: var(--muted); }
+    .reset {
+      padding: 6px 14px;
+      background: var(--fish);
+      color: var(--edge);
+      border: 3px solid var(--edge);
+      font-family: "Pixelify Sans", monospace;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .reset:hover { background: var(--moon); }
+
+    @media (max-width: 720px) {
+      .wrap { padding: 16px; }
+      .arena { flex-direction: column; }
+      .cat-col { flex-basis: auto; }
+      .shop { grid-template-columns: 1fr; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .pop { animation-duration: 0.01s; }
+      .cat-btn.evolve img, .row .icons .new { animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Cat Clicker</h1>
+
+    <section class="panel" aria-label="Cat">
+      <div class="stats">
+        <div class="stat"><b id="fish">0</b><span>Fish</span></div>
+        <div class="stat"><b id="perClick">1</b><span>per click</span></div>
+        <div class="stat"><b id="fps">0</b><span>per second</span></div>
+      </div>
+
+      <p class="bubble" id="bubble" aria-live="polite">Pet me to earn fish!</p>
+
+      <div class="arena">
+        <div class="cat-col">
+          <p class="cat-name"><span id="catName">Minimeow</span><small id="stage">Cat 1 of 6</small></p>
+          <div class="stage" id="stageBox">
+            <button class="cat-btn" id="cat" type="button" aria-label="Pet the cat to earn fish">
+              <img id="catImg" src="images/Minimeow.jpg" alt="Minimeow, a sleepy tabby kitten" width="480" height="480">
+            </button>
+          </div>
+          <div class="bar" role="progressbar" aria-label="Progress to the next cat" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="barWrap"><i id="barFill"></i></div>
+          <p class="next" id="next"></p>
+        </div>
+
+        <div class="room" aria-label="Your cat's room">
+          <h2>Cat room</h2>
+          <p class="empty" id="empty">Buy something from the shop and it shows up here.</p>
+          <div id="items"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" aria-label="Shop">
+      <h2>Shop</h2>
+      <ul class="shop" id="shop"></ul>
+      <div class="tools">
+        <small>Your progress saves automatically in this browser.</small>
+        <button class="reset" id="reset" type="button">Reset game</button>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    (function () {
+      var SAVE_KEY = "catClickerSave2";
+      var GROWTH = 1.15;
+      var MAX_ICONS = 10; // icons drawn per item before it switches to a count
+
+      // Cats evolve by number of clicks. Edit "at" to change how fast.
+      var cats = [
+        { name: "Minimeow", file: "Minimeow", at: 0,    alt: "Minimeow, a sleepy tabby kitten" },
+        { name: "Mimi",     file: "Mimi",     at: 50,   alt: "Mimi, a fluffy grey cat sleeping on a lap" },
+        { name: "Kuro",     file: "Kuro",     at: 150,  alt: "Kuro, a black cat curled up with a plush toy" },
+        { name: "Taro",     file: "Taro",     at: 400,  alt: "Taro, a fluffy black kitten looking up" },
+        { name: "Ah Wang",  file: "AhWang",   at: 900,  alt: "Ah Wang, a tabby cat sitting up straight" },
+        { name: "Fatty Cat", file: "FattyCat", at: 2000, alt: "Fatty Cat, a big tabby lying on the floor" }
+      ];
+
+      // To add an upgrade, add one line here. "icon" is what appears in the cat room.
+      var upgrades = [
+        { name: "Bigger bowl",   icon: "\uD83E\uDD63", desc: "+1 fish per click",     base: 10,    click: 1, fps: 0 },
+        { name: "Yarn toy",      icon: "\uD83E\uDDF6", desc: "+1 fish per second",    base: 50,    click: 0, fps: 1 },
+        { name: "Fancy treats",  icon: "\uD83C\uDF64", desc: "+5 fish per click",     base: 200,   click: 5, fps: 0 },
+        { name: "Cat tree",      icon: "\uD83C\uDF32", desc: "+8 fish per second",    base: 500,   click: 0, fps: 8 },
+        { name: "Kitten helper", icon: "\uD83D\uDC31", desc: "+40 fish per second",   base: 3000,  click: 0, fps: 40 },
+        { name: "Fishing boat",  icon: "\u26F5",       desc: "+200 fish per second",  base: 20000, click: 0, fps: 200 }
+      ];
+
+      var petLines = ["Meow!", "Purr...", "More fish!", "Mrrp?", "Nyan!", "Nice pets!", "Right there!"];
+      var buyLines = ["Thank you, hooman!", "Ooh, shiny!", "Purrfect choice.", "I approve."];
+
+      function fresh() { return { fish: 0, clicks: 0, owned: upgrades.map(function () { return 0; }) }; }
+      var state = fresh();
+      var stageIndex = 0;
+
+      var $ = function (id) { return document.getElementById(id); };
+      var el = {
+        fish: $("fish"), perClick: $("perClick"), fps: $("fps"), bubble: $("bubble"),
+        stageBox: $("stageBox"), cat: $("cat"), img: $("catImg"), name: $("catName"), stage: $("stage"),
+        barFill: $("barFill"), barWrap: $("barWrap"), next: $("next"),
+        items: $("items"), empty: $("empty"), shop: $("shop"), reset: $("reset")
+      };
+
+      function pick(list) { return list[Math.floor(Math.random() * list.length)]; }
+      function say(text) { el.bubble.textContent = text; }
+
+      function fmt(n) {
+        n = Math.floor(n);
+        if (n < 1000) return String(n);
+        var units = ["K", "M", "B", "T"];
+        var i = -1, v = n;
+        while (v >= 1000 && i < units.length - 1) { v /= 1000; i++; }
+        return (v < 10 ? v.toFixed(2) : v < 100 ? v.toFixed(1) : Math.floor(v)) + units[i];
+      }
+
+      function cost(i) { return Math.ceil(upgrades[i].base * Math.pow(GROWTH, state.owned[i])); }
+      function perClick() {
+        var t = 1;
+        upgrades.forEach(function (u, i) { t += u.click * state.owned[i]; });
+        return t;
+      }
+      function perSecond() {
+        var t = 0;
+        upgrades.forEach(function (u, i) { t += u.fps * state.owned[i]; });
+        return t;
+      }
+      function stageFor(clicks) {
+        var s = 0;
+        cats.forEach(function (c, i) { if (clicks >= c.at) s = i; });
+        return s;
+      }
+
+      // Preload the photos so evolving never flickers.
+      cats.forEach(function (c) { var im = new Image(); im.src = "images/" + c.file + ".jpg"; });
+
+      // Shop buttons are built once, then only their text is updated.
+      var rows = upgrades.map(function (u, i) {
+        var li = document.createElement("li");
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "item";
+        b.innerHTML =
+          '<span class="left"><span class="ico"></span><span><span class="name"></span><span class="desc"></span></span></span>' +
+          '<span><span class="cost"></span><span class="owned"></span></span>';
+        b.querySelector(".ico").textContent = u.icon;
+        b.querySelector(".name").textContent = u.name;
+        b.querySelector(".desc").textContent = u.desc;
+        b.addEventListener("click", function () { buy(i); });
+        li.appendChild(b);
+        el.shop.appendChild(li);
+        return { btn: b, cost: b.querySelector(".cost"), owned: b.querySelector(".owned") };
+      });
+
+      // The cat room only redraws when something is bought, loaded or reset.
+      function renderRoom(newIndex) {
+        el.items.innerHTML = "";
+        var any = false;
+        upgrades.forEach(function (u, i) {
+          var n = state.owned[i];
+          if (!n) return;
+          any = true;
+          var row = document.createElement("div");
+          row.className = "row";
+          var icons = document.createElement("div");
+          icons.className = "icons";
+          icons.setAttribute("aria-hidden", "true");
+          var shown = Math.min(n, MAX_ICONS);
+          for (var k = 0; k < shown; k++) {
+            var s = document.createElement("span");
+            s.textContent = u.icon;
+            if (i === newIndex && k === shown - 1) s.className = "new";
+            icons.appendChild(s);
+          }
+          var count = document.createElement("span");
+          count.className = "count";
+          count.textContent = u.name + " x" + n;
+          row.appendChild(icons);
+          row.appendChild(count);
+          el.items.appendChild(row);
+        });
+        el.empty.hidden = any;
+      }
+
+      function renderCat() {
+        var c = cats[stageIndex];
+        el.name.textContent = c.name;
+        el.stage.textContent = "Cat " + (stageIndex + 1) + " of " + cats.length;
+        el.img.src = "images/" + c.file + ".jpg";
+        el.img.alt = c.alt;
+      }
+
+      function renderProgress() {
+        var nextCat = cats[stageIndex + 1];
+        var pct = 100;
+        if (nextCat) {
+          var from = cats[stageIndex].at;
+          pct = Math.min(100, ((state.clicks - from) / (nextCat.at - from)) * 100);
+          el.next.textContent = "Next: " + nextCat.name + " at " + nextCat.at + " clicks (" + state.clicks + "/" + nextCat.at + ")";
+        } else {
+          el.next.textContent = "Max level reached! " + state.clicks + " clicks.";
+        }
+        el.barFill.style.width = pct + "%";
+        el.barWrap.setAttribute("aria-valuenow", Math.round(pct));
+      }
+
+      function render() {
+        el.fish.textContent = fmt(state.fish);
+        el.perClick.textContent = fmt(perClick());
+        el.fps.textContent = fmt(perSecond());
+        rows.forEach(function (r, i) {
+          var c = cost(i);
+          r.cost.textContent = fmt(c) + " fish";
+          r.owned.textContent = "Owned: " + state.owned[i];
+          r.btn.disabled = state.fish < c;
+        });
+        renderProgress();
+      }
+
+      function popText(text, x, y) {
+        var s = document.createElement("span");
+        s.className = "pop";
+        s.textContent = text;
+        s.style.left = x + "px";
+        s.style.top = y + "px";
+        el.stageBox.appendChild(s);
+        setTimeout(function () { s.remove(); }, 900);
+      }
+
+      function evolveIfReady() {
+        var s = stageFor(state.clicks);
+        if (s === stageIndex) return false;
+        var from = cats[stageIndex].name;
+        stageIndex = s;
+        renderCat();
+        say(from + " evolved into " + cats[s].name + "!");
+        el.cat.classList.remove("evolve");
+        void el.cat.offsetWidth; // restart the flash animation
+        el.cat.classList.add("evolve");
+        return true;
+      }
+
+      el.cat.addEventListener("click", function (e) {
+        var gain = perClick();
+        state.fish += gain;
+        state.clicks++;
+
+        var box = el.stageBox.getBoundingClientRect();
+        var x = e.clientX ? e.clientX - box.left : box.width / 2;
+        var y = e.clientY ? e.clientY - box.top : box.height / 2;
+        popText("+" + fmt(gain), x - 12, y - 24);
+
+        if (!evolveIfReady()) {
+          if (Math.floor(state.fish) === 67) say("67");
+          else say(pick(petLines));
+        }
+        render();
+      });
+
+      function buy(i) {
+        var c = cost(i);
+        if (state.fish < c) return;
+        state.fish -= c;
+        state.owned[i]++;
+        say(pick(buyLines));
+        renderRoom(i);
+        render();
+        save();
+      }
+
+      // Passive fish: tick 10 times a second so the counter moves smoothly.
+      setInterval(function () {
+        var gain = perSecond() / 10;
+        if (gain > 0) { state.fish += gain; render(); }
+      }, 100);
+
+      function save() {
+        try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (e) { /* storage unavailable */ }
+      }
+
+      function load() {
+        try {
+          var raw = localStorage.getItem(SAVE_KEY);
+          if (!raw) return;
+          var data = JSON.parse(raw);
+          if (typeof data.fish === "number") state.fish = data.fish;
+          if (typeof data.clicks === "number") state.clicks = data.clicks;
+          if (Array.isArray(data.owned)) {
+            upgrades.forEach(function (u, i) { state.owned[i] = Number(data.owned[i]) || 0; });
+          }
+          say("Welcome back, hooman!");
+        } catch (e) { /* ignore a broken save */ }
+      }
+
+      el.reset.addEventListener("click", function () {
+        if (!confirm("Reset all your fish, upgrades and cats?")) return;
+        state = fresh();
+        stageIndex = 0;
+        say("Fresh start! Pet me to earn fish!");
+        renderCat();
+        renderRoom();
+        render();
+        save();
+      });
+
+      setInterval(save, 5000);
+      window.addEventListener("beforeunload", save);
+
+      load();
+      stageIndex = stageFor(state.clicks);
+      renderCat();
+      renderRoom();
+      render();
+    })();
+  </script>
+</body>
+</html>
