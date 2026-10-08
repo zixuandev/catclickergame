@@ -42,7 +42,16 @@
     button { font-family: inherit; color: inherit; }
     button:focus-visible { outline: 3px solid var(--mint); outline-offset: 3px; }
 
-    .wrap { max-width: 900px; margin: 0 auto; padding: 24px; display: grid; gap: 28px; }
+    .wrap {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 24px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+      gap: 28px;
+      align-items: start;
+    }
+    .wrap h1 { grid-column: 1 / -1; }
 
     h1, h2 { font-family: "Pixelify Sans", monospace; }
     h1 {
@@ -137,7 +146,7 @@
     @keyframes drop { from { transform: translateY(-40px) scale(1.6); opacity: 0; } to { transform: none; opacity: 1; } }
 
     /* Shop */
-    .shop { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0; padding: 0; list-style: none; }
+    .shop { display: grid; grid-template-columns: 1fr; gap: 12px; margin: 0; padding: 0; list-style: none; }
     .item {
       display: flex;
       width: 100%;
@@ -176,6 +185,12 @@
     .reset:hover:not(:disabled) { background: var(--moon); }
     .reset:disabled { opacity: 0.5; cursor: not-allowed; }
     .tools .info { display: grid; gap: 2px; }
+
+    /* Narrow screens: shop drops below the cat */
+    @media (max-width: 1000px) {
+      .wrap { grid-template-columns: minmax(0, 1fr); }
+      .shop { grid-template-columns: 1fr 1fr; }
+    }
 
     @media (max-width: 720px) {
       .wrap { padding: 16px; }
