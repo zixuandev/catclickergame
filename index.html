@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Cat Clicker</title>
-  <meta name="description" content="Pet the pixel cat to earn fish, buy upgrades and evolve through six cats.">
+  <meta name="description" content="Pet the pixel cat to earn fish, buy upgrades, finish quests for accessories and evolve through nine cats.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
@@ -22,6 +22,7 @@
     }
 
     * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
 
     body {
       margin: 0;
@@ -40,7 +41,7 @@
     }
 
     button { font-family: inherit; color: inherit; }
-    button:focus-visible { outline: 3px solid var(--mint); outline-offset: 3px; }
+    button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px solid var(--mint); outline-offset: 3px; }
 
     .wrap {
       max-width: 1280px;
@@ -51,7 +52,16 @@
       gap: 28px;
       align-items: start;
     }
-    .wrap h1 { grid-column: 1 / -1; }
+
+    .top {
+      grid-column: 1 / -1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .side { display: grid; gap: 28px; }
 
     h1, h2 { font-family: "Pixelify Sans", monospace; }
     h1 {
@@ -69,6 +79,35 @@
       box-shadow: 8px 8px 0 var(--edge);
     }
 
+    .account {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 6px 6px 6px 14px;
+      background: var(--panel);
+      border: 4px solid var(--edge);
+      box-shadow: 4px 4px 0 var(--edge);
+      font-size: 0.95rem;
+    }
+    .account b { font-family: "Pixelify Sans", monospace; color: var(--moon); }
+
+    .btn {
+      padding: 6px 14px;
+      background: var(--fish);
+      color: var(--edge);
+      border: 3px solid var(--edge);
+      font-family: "Pixelify Sans", monospace;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    .btn:hover:not(:disabled) { background: var(--moon); }
+    .btn:active:not(:disabled) { transform: translate(2px, 2px); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn.alt { background: var(--panel-2); color: var(--ink); border-color: var(--edge); }
+    .btn.alt:hover:not(:disabled) { background: var(--bg); color: var(--moon); }
+    .btn.wide { width: 100%; padding: 10px 14px; font-size: 1.1rem; }
+
     .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; text-align: center; }
     .stat { padding: 6px 4px; background: var(--bg); border: 3px solid var(--edge); }
     .stat b { display: block; font-family: "Pixelify Sans", monospace; font-size: 1.35rem; color: var(--moon); line-height: 1.2; }
@@ -84,7 +123,6 @@
       font-family: "Pixelify Sans", monospace;
     }
 
-    /* Cat and room side by side */
     .arena { display: flex; gap: 20px; align-items: stretch; }
     .cat-col { flex: 0 0 270px; }
     .cat-name { margin: 0 0 8px; font-family: "Pixelify Sans", monospace; font-weight: 700; font-size: 1.4rem; line-height: 1.2; }
@@ -145,7 +183,6 @@
     .row .count { font-family: "Pixelify Sans", monospace; color: var(--mint); white-space: nowrap; }
     @keyframes drop { from { transform: translateY(-40px) scale(1.6); opacity: 0; } to { transform: none; opacity: 1; } }
 
-    /* Cat collection */
     .collection { margin-top: 24px; }
     .collection h2 { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 1.25rem; }
     .collection h2 small { font-family: "Nunito", system-ui, sans-serif; font-size: 0.9rem; font-weight: 600; color: var(--mint); }
@@ -178,7 +215,6 @@
     .dex-item.locked .dname { color: var(--muted); }
     .dex-item.current .dinfo { color: var(--moon); }
 
-    /* Shop */
     .shop { display: grid; grid-template-columns: 1fr; gap: 12px; margin: 0; padding: 0; list-style: none; }
     .item {
       display: flex;
@@ -219,7 +255,178 @@
     .reset:disabled { opacity: 0.5; cursor: not-allowed; }
     .tools .info { display: grid; gap: 2px; }
 
-    /* Narrow screens: shop drops below the cat */
+    .ptabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+    .ptab {
+      padding: 8px 10px;
+      background: var(--bg);
+      color: var(--muted);
+      border: 3px solid var(--edge);
+      font-family: "Pixelify Sans", monospace;
+      font-weight: 700;
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+    .ptab:hover { color: var(--ink); }
+    .ptab[aria-selected="true"] { background: var(--panel-2); color: var(--moon); border-color: var(--moon); }
+    .pane-count { margin: 0 0 12px; font-size: 0.9rem; font-weight: 600; color: var(--mint); }
+
+    .fit { display: flex; gap: 14px; align-items: center; margin-bottom: 16px; }
+    .fit-cat {
+      flex: 0 0 130px;
+      padding: 8px;
+      background: var(--panel-2);
+      border: 4px solid var(--edge);
+      box-shadow: 4px 4px 0 var(--moon);
+      line-height: 0;
+    }
+    .fit-info { display: grid; gap: 10px; justify-items: start; }
+    .fit-info p { margin: 0; font-size: 0.9rem; color: var(--muted); }
+    .acc-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 0; padding: 0; list-style: none; }
+    .acc {
+      display: block;
+      width: 100%;
+      height: 100%;
+      padding: 6px;
+      background: var(--bg);
+      border: 3px solid var(--edge);
+      text-align: center;
+      line-height: 1.3;
+      cursor: pointer;
+    }
+    .acc:hover { border-color: var(--muted); }
+    .acc.worn { border-color: var(--moon); box-shadow: 3px 3px 0 var(--moon); }
+    .acc.trying { border-color: var(--mint); border-style: dashed; }
+    .acc.locked .acc-art { filter: grayscale(1) brightness(0.7); }
+    .acc-art { display: block; width: 100%; max-width: 72px; margin: 0 auto 4px; line-height: 0; }
+    .acc .aname { display: block; font-family: "Pixelify Sans", monospace; font-weight: 700; font-size: 0.95rem; }
+    .acc .ainfo { display: block; font-size: 0.75rem; color: var(--muted); }
+    .acc.worn .ainfo { color: var(--moon); }
+    .acc.trying .ainfo { color: var(--mint); }
+
+    .quests { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+    .quest { padding: 8px 12px; background: var(--bg); border: 3px solid var(--edge); }
+    .quest.done { border-color: var(--mint); }
+    .quest .qtop { display: flex; justify-content: space-between; gap: 8px; font-family: "Pixelify Sans", monospace; font-weight: 700; }
+    .quest .qprog { color: var(--moon); white-space: nowrap; }
+    .quest.done .qprog { color: var(--mint); }
+    .quest .qdesc { font-size: 0.9rem; color: var(--muted); }
+    .quest .qbar { height: 12px; margin-top: 6px; background: var(--panel); border: 3px solid var(--edge); }
+    .quest .qbar i { display: block; height: 100%; width: 0; background: var(--mint); }
+
+    .qhead { margin: 0 0 10px; font-family: "Pixelify Sans", monospace; font-size: 1.05rem; color: var(--moon); }
+    .qhead small { font-family: "Nunito", system-ui, sans-serif; font-size: 0.85rem; font-weight: 600; color: var(--muted); }
+    .quests-empty { margin: 0 0 10px; color: var(--muted); font-size: 0.95rem; }
+    .done-box { margin-top: 16px; }
+    .done-box summary {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 12px;
+      background: var(--panel-2);
+      border: 3px solid var(--edge);
+      font-family: "Pixelify Sans", monospace;
+      font-weight: 700;
+      color: var(--mint);
+      cursor: pointer;
+      list-style: none;
+    }
+    .done-box summary::-webkit-details-marker { display: none; }
+    .done-box summary::after { content: "\25BC"; font-size: 0.8rem; }
+    .done-box[open] summary::after { content: "\25B2"; }
+    .done-box summary:hover { background: var(--bg); }
+    .done-box summary small { font-family: "Nunito", system-ui, sans-serif; font-size: 0.85rem; font-weight: 600; color: var(--muted); }
+    .done-box .quests { margin-top: 10px; }
+
+    .board-note { margin: 0 0 12px; font-size: 0.9rem; color: var(--muted); }
+    .board { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+    .board li {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 12px;
+      background: var(--bg);
+      border: 3px solid var(--edge);
+    }
+    .board li.me { border-color: var(--moon); box-shadow: 3px 3px 0 var(--moon); }
+    .board .pos {
+      flex: 0 0 2.2rem;
+      font-family: "Pixelify Sans", monospace;
+      font-weight: 700;
+      font-size: 1.3rem;
+      text-align: center;
+      color: var(--muted);
+    }
+    .board li:nth-child(1) .pos { color: var(--moon); }
+    .board li:nth-child(2) .pos { color: var(--ink); }
+    .board li:nth-child(3) .pos { color: var(--fish); }
+    .board .who { min-width: 0; line-height: 1.3; }
+    .board .nm {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-family: "Pixelify Sans", monospace;
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+    .board .sc { display: block; font-size: 0.85rem; color: var(--mint); }
+    .board-empty { margin: 0; color: var(--muted); font-size: 0.95rem; }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      background: rgba(15, 13, 38, 0.88);
+    }
+    .dialog {
+      width: 100%;
+      max-width: 400px;
+      max-height: 100%;
+      overflow: auto;
+      padding: 22px;
+      background: var(--panel);
+      border: 4px solid var(--edge);
+      box-shadow: 8px 8px 0 var(--moon);
+    }
+    .dialog h2 { margin-bottom: 6px; text-align: center; }
+    .dlg-cat { width: 84px; margin: 0 auto 10px; padding: 6px; background: var(--panel-2); border: 3px solid var(--edge); line-height: 0; }
+    .hint { margin: 0 0 14px; text-align: center; font-size: 0.95rem; color: var(--muted); }
+    .hint.small { margin: 12px 0 0; font-size: 0.85rem; }
+
+    .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+    .tab {
+      padding: 6px 8px;
+      background: var(--bg);
+      color: var(--muted);
+      border: 3px solid var(--edge);
+      font-family: "Pixelify Sans", monospace;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    .tab[aria-selected="true"] { background: var(--panel-2); color: var(--moon); border-color: var(--moon); }
+
+    .field { display: block; margin-bottom: 12px; font-size: 0.9rem; font-weight: 600; color: var(--muted); }
+    .field input {
+      display: block;
+      width: 100%;
+      margin-top: 4px;
+      padding: 8px 10px;
+      background: var(--bg);
+      color: var(--ink);
+      border: 3px solid var(--edge);
+      font-family: inherit;
+      font-size: 1rem;
+    }
+    .field input:focus { border-color: var(--mint); }
+    .msg { min-height: 1.4em; margin: 0 0 10px; font-size: 0.9rem; color: var(--fish); }
+    .or { margin: 14px 0; text-align: center; font-size: 0.85rem; color: var(--muted); }
+
     @media (max-width: 1000px) {
       .wrap { grid-template-columns: minmax(0, 1fr); }
       .shop { grid-template-columns: 1fr 1fr; }
@@ -236,6 +443,8 @@
       .stats { grid-template-columns: repeat(2, 1fr); }
       .dex { gap: 8px; }
       .dex-item { padding: 6px; }
+      .acc-grid { grid-template-columns: repeat(2, 1fr); }
+      .fit { flex-direction: column; align-items: flex-start; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -246,7 +455,13 @@
 </head>
 <body>
   <div class="wrap">
-    <h1>Cat Clicker</h1>
+    <header class="top">
+      <h1>Cat Clicker</h1>
+      <div class="account" id="account" hidden>
+        <span id="acctText"></span>
+        <button class="btn" id="acctBtn" type="button"></button>
+      </div>
+    </header>
 
     <section class="panel" aria-label="Cat">
       <div class="stats">
@@ -260,7 +475,7 @@
 
       <div class="arena">
         <div class="cat-col">
-          <p class="cat-name"><span id="catName">Minimeow</span><small id="stage">Cat 1 of 6</small></p>
+          <p class="cat-name"><span id="catName">Minimeow</span><small id="stage">Cat 1 of 9</small></p>
           <div class="stage" id="stageBox">
             <button class="cat-btn" id="cat" type="button" aria-label="Pet the cat to earn fish"></button>
           </div>
@@ -276,72 +491,100 @@
       </div>
 
       <div class="collection">
-        <h2>Cat collection <small id="dexCount"></small></h2>
+        <h2>Cat Collection <small id="dexCount"></small></h2>
         <ul class="dex" id="dex"></ul>
       </div>
     </section>
 
-    <section class="panel" aria-label="Shop">
-      <h2>Shop</h2>
-      <ul class="shop" id="shop"></ul>
-      <div class="tools">
-        <div class="info">
-          <small id="rebirthInfo"></small>
-          <small>Your progress saves automatically in this browser.</small>
+    <div class="side">
+      <section class="panel" aria-label="Shop">
+        <h2>Shop</h2>
+        <ul class="shop" id="shop"></ul>
+        <div class="tools">
+          <div class="info">
+            <small id="rebirthInfo"></small>
+            <small>Progress saves in this browser. Log in to back it up to the cloud.</small>
+          </div>
+          <button class="reset" id="rebirth" type="button">Rebirth</button>
         </div>
-        <button class="reset" id="rebirth" type="button">Rebirth</button>
-      </div>
-    </section>
+      </section>
+
+      <section class="panel" aria-label="Closet and quests">
+        <div class="ptabs" role="tablist">
+          <button class="ptab" id="ptabCloset" type="button" role="tab" aria-selected="true" aria-controls="paneCloset">Closet</button>
+          <button class="ptab" id="ptabQuests" type="button" role="tab" aria-selected="false" aria-controls="paneQuests">Quests</button>
+        </div>
+
+        <div id="paneCloset" role="tabpanel" aria-labelledby="ptabCloset" class="closet">
+          <p class="pane-count" id="closetCount"></p>
+          <div class="fit">
+            <div class="fit-cat" id="closetCat" role="img" aria-label="Preview of your cat's outfit"></div>
+            <div class="fit-info">
+              <p>Tap an accessory you own to wear it. Tap a locked one to try it on. Try-ons are preview only until you finish its quest.</p>
+              <button class="reset" id="undress" type="button">Take everything off</button>
+            </div>
+          </div>
+          <ul class="acc-grid" id="closetGrid"></ul>
+        </div>
+
+        <div id="paneQuests" role="tabpanel" aria-labelledby="ptabQuests" hidden>
+          <h3 class="qhead">In progress <small id="activeCount"></small></h3>
+          <ul class="quests" id="quests"></ul>
+          <p class="quests-empty" id="questsEmpty" hidden>All quests complete! Nice work.</p>
+          <details class="done-box" id="doneBox" hidden>
+            <summary><span>Completed <small id="doneCount"></small></span></summary>
+            <ul class="quests" id="questsDone"></ul>
+          </details>
+        </div>
+      </section>
+
+      <section class="panel" aria-label="Leaderboard">
+        <h2>Leaderboard</h2>
+        <p class="board-note" id="boardNote"></p>
+        <ol class="board" id="board"></ol>
+        <p class="board-empty" id="boardEmpty" hidden>Nobody is on the board yet. Log in and be the first!</p>
+      </section>
+    </div>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  <div class="modal" id="authModal" role="dialog" aria-modal="true" aria-labelledby="authTitle" hidden>
+    <div class="dialog">
+      <div class="dlg-cat" id="dlgCat" aria-hidden="true"></div>
+      <h2 id="authTitle">Welcome, hooman!</h2>
+      <p class="hint">Log in to save your cats in the cloud and join the leaderboard.</p>
 
-    const app = initializeApp({
-      apiKey: "AIzaSyBh6pSkV40G2fV3WImjIYD7Ln7VUWrGuW8",
-      authDomain: "cat-clicker-f806a.firebaseapp.com",
-      projectId: "cat-clicker-f806a",
-      storageBucket: "cat-clicker-f806a.firebasestorage.app",
-      messagingSenderId: "526792012165",
-      appId: "1:526792012165:web:e32f452fa54d222f8254ec"
-    });
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+      <div class="tabs" role="tablist">
+        <button class="tab" id="tabLogin" type="button" role="tab" aria-selected="true">Log in</button>
+        <button class="tab" id="tabSignup" type="button" role="tab" aria-selected="false">Create account</button>
+      </div>
 
-    // Each player is signed in anonymously and gets their own save document.
-    const ready = new Promise(function (res) {
-      onAuthStateChanged(auth, function (u) { if (u) res(u); });
-    });
-    signInAnonymously(auth).catch(function (e) { console.warn("Cloud sign-in failed", e); });
+      <form id="authForm" novalidate>
+        <label class="field" id="unameRow" hidden>Username
+          <input id="uname" type="text" maxlength="20" autocomplete="nickname">
+        </label>
+        <label class="field">Email
+          <input id="email" type="email" autocomplete="email">
+        </label>
+        <label class="field">Password
+          <input id="password" type="password" autocomplete="current-password">
+        </label>
+        <p class="msg" id="authMsg" role="alert"></p>
+        <button class="btn wide" id="authSubmit" type="submit">Log in</button>
+      </form>
 
-    window.cloud = {
-      save: async function (state) {
-        const u = await ready;
-        await setDoc(doc(db, "saves", u.uid), state);
-      },
-      load: async function () {
-        const u = await ready;
-        const snap = await getDoc(doc(db, "saves", u.uid));
-        return snap.exists() ? snap.data() : null;
-      }
-    };
-  </script>
+      <div class="or">or</div>
+      <button class="btn alt wide" id="guestBtn" type="button">Continue as guest</button>
+      <p class="hint small">Guest progress only saves in this browser, and guests aren't on the leaderboard.</p>
+    </div>
+  </div>
 
   <script>
     (function () {
-      // Bumped from catClickerSave3 because the evolution thresholds changed.
       var SAVE_KEY = "catClickerSave4";
-      // Raised from 1.15 so shop prices climb faster with each purchase.
       var GROWTH = 1.2;
-      // Each rebirth adds this much to every fish you earn (0.5 = +50% per rebirth).
       var REBIRTH_BONUS = 0.5;
-      var MAX_ICONS = 10; // icons drawn per item before it switches to a count
+      var MAX_ICONS = 10;
 
-      // Each cat has its own colours. "at" is the number of clicks needed to reach it.
-      // line = outline, fur = main colour, dark = stripes, light = white patches,
-      // hi = shine on black fur, paw = paw colour, ear/nose/eye = face colours.
       var cats = [
         { name: "Minimeow", at: 0, line: "#0f0d26", fur: "#857964", dark: "#2b2824", light: "#d4cbbc", paw: "#857964",
           ear: "#a8857a", nose: "#8a6460", eye: "#c98a2e", eyeH: 2, stripes: 1, chest: 1 },
@@ -351,360 +594,4 @@
           ear: "#5a4658", nose: "#6b5b6b", eye: "#e5c14a", eyeH: 2 },
         { name: "Taro", at: 900, line: "#0f0d26", fur: "#232331", hi: "#3d3d56", paw: "#232331",
           ear: "#4a3a4a", nose: "#4a3a4a", eye: "#f0a830", eyeH: 2, tufts: 1 },
-        { name: "Ah Wang", at: 2000, line: "#0f0d26", fur: "#a8824f", dark: "#4a3520", light: "#e8d9bd", paw: "#a8824f",
-          ear: "#d9a28f", nose: "#d98a7a", eye: "#f2e08a", eyeH: 2, stripes: 1 },
-        { name: "Fatty Cat", at: 4500, line: "#0f0d26", fur: "#6d6556", dark: "#2c2822", light: "#f4f1ea", paw: "#f4f1ea",
-          ear: "#d9a28f", nose: "#d98a7a", eye: "#9ab04a", eyeH: 2, stripes: 1, blaze: 1, chest: 1, wide: 1 }
-      ];
-
-      // To add an upgrade, add one line here. "icon" is what appears in the cat room.
-      var upgrades = [
-        { name: "Bigger bowl",   icon: "\uD83E\uDD63", desc: "+1 fish per click",     base: 10,    click: 1, fps: 0 },
-        { name: "Yarn toy",      icon: "\uD83E\uDDF6", desc: "+1 fish per second",    base: 50,    click: 0, fps: 1 },
-        { name: "Fancy treats",  icon: "\uD83C\uDF64", desc: "+5 fish per click",     base: 200,   click: 5, fps: 0 },
-        { name: "Cat tree",      icon: "\uD83C\uDF32", desc: "+8 fish per second",    base: 500,   click: 0, fps: 8 },
-        { name: "Kitten helper", icon: "\uD83D\uDC31", desc: "+40 fish per second",   base: 3000,  click: 0, fps: 40 },
-        { name: "Fishing boat",  icon: "\u26F5",       desc: "+200 fish per second",  base: 20000, click: 0, fps: 200 }
-      ];
-
-      var petLines = ["Meow!", "Purr...", "More fish!", "Mrrp?", "Nyan!", "Nice pets!"];
-      var buyLines = ["Thank you, hooman!", "Ooh, shiny!", "Purrfect choice.", "I approve!"];
-
-      // Draws a 16 by 16 pixel cat from a colour set.
-      function r(x, y, w, h, c, cls) {
-        return '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" fill="' + c + '"' + (cls ? ' class="' + cls + '"' : "") + "/>";
-      }
-      function catSvg(p) {
-        var L = p.line, d = p.dark, bx = p.wide ? 2 : 3, bw = p.wide ? 12 : 10;
-        var s = '<svg class="art" viewBox="0 0 16 16" aria-hidden="true">';
-        // outline
-        s += r(2, 0, 3, 3, L) + r(11, 0, 3, 3, L) + r(2, 2, 12, 8, L) + r(bx, 10, bw, 5, L);
-        if (p.tufts) s += r(1, 6, 1, 3, L) + r(14, 6, 1, 3, L);
-        // tail (wags)
-        s += '<g class="tail">' + r(13, 11, 3, 4, L) + r(14, 8, 2, 4, L) + r(14, 12, 1, 2, p.fur) + r(15, 9, 1, 3, p.fur);
-        if (p.stripes) s += r(14, 13, 1, 1, d) + r(15, 10, 1, 1, d);
-        s += "</g>";
-        // fur
-        s += r(3, 1, 2, 2, p.fur) + r(11, 1, 2, 2, p.fur) + r(3, 3, 10, 6, p.fur) + r(bx + 1, 10, bw - 2, 4, p.fur);
-        s += r(4, 2, 1, 1, p.ear) + r(11, 2, 1, 1, p.ear);
-        if (p.tufts) s += r(2, 6, 1, 3, p.fur) + r(13, 6, 1, 3, p.fur);
-        if (p.hi) s += r(4, 3, 3, 1, p.hi) + r(10, 3, 2, 1, p.hi) + r(5, 11, 2, 1, p.hi) + r(9, 12, 2, 1, p.hi);
-        if (p.stripes) {
-          s += r(7, 3, 2, 1, d) + r(6, 4, 1, 1, d) + r(9, 4, 1, 1, d) + r(3, 6, 1, 1, d) + r(12, 6, 1, 1, d);
-          s += r(5, 10, 1, 2, d) + r(7, 10, 1, 2, d) + r(9, 10, 1, 2, d) + r(11, 10, 1, 2, d);
-        }
-        // white patches and paws
-        if (p.blaze) s += r(7, 3, 2, 4, p.light);
-        if (p.chin) s += r(6, 8, 4, 1, p.light);
-        if (p.chest) s += r(6, 10, 4, 3, p.light);
-        var pl = p.wide ? 3 : 4, pr = p.wide ? 10 : 9;
-        s += r(pl, 14, 3, 1, p.paw) + r(pr, 14, 3, 1, p.paw);
-        // face
-        var ey = p.eyeH === 2 ? 5 : 6;
-        s += r(5, ey, 2, p.eyeH, p.eye, "eye") + r(9, ey, 2, p.eyeH, p.eye, "eye");
-        s += r(7, 7, 2, 1, p.nose);
-        return s + "</svg>";
-      }
-
-      function fresh() { return { fish: 0, clicks: 0, rebirths: 0, owned: upgrades.map(function () { return 0; }) }; }
-      var state = fresh();
-      var stageIndex = 0;
-
-      var $ = function (id) { return document.getElementById(id); };
-      var el = {
-        fish: $("fish"), perClick: $("perClick"), fps: $("fps"), bonus: $("bonus"), bubble: $("bubble"),
-        stageBox: $("stageBox"), cat: $("cat"), name: $("catName"), stage: $("stage"),
-        barFill: $("barFill"), barWrap: $("barWrap"), next: $("next"),
-        items: $("items"), empty: $("empty"), shop: $("shop"), rebirth: $("rebirth"), rebirthInfo: $("rebirthInfo"),
-        dex: $("dex"), dexCount: $("dexCount")
-      };
-
-      function pick(list) { return list[Math.floor(Math.random() * list.length)]; }
-      function say(text) { el.bubble.textContent = text; }
-
-      function fmt(n) {
-        n = Math.floor(n);
-        if (n < 1000) return String(n);
-        var units = ["K", "M", "B", "T"];
-        var i = -1, v = n;
-        while (v >= 1000 && i < units.length - 1) { v /= 1000; i++; }
-        return (v < 10 ? v.toFixed(2) : v < 100 ? v.toFixed(1) : Math.floor(v)) + units[i];
-      }
-
-      function cost(i) { return Math.ceil(upgrades[i].base * Math.pow(GROWTH, state.owned[i])); }
-      function multiplier() { return 1 + REBIRTH_BONUS * state.rebirths; }
-      function perClick() {
-        var t = 1;
-        upgrades.forEach(function (u, i) { t += u.click * state.owned[i]; });
-        return Math.ceil(t * multiplier());
-      }
-      function perSecond() {
-        var t = 0;
-        upgrades.forEach(function (u, i) { t += u.fps * state.owned[i]; });
-        return t * multiplier();
-      }
-      function canRebirth() { return stageIndex === cats.length - 1; }
-      function stageFor(clicks) {
-        var s = 0;
-        cats.forEach(function (c, i) { if (clicks >= c.at) s = i; });
-        return s;
-      }
-
-      // Shop buttons are built once, then only their text is updated.
-      var rows = upgrades.map(function (u, i) {
-        var li = document.createElement("li");
-        var b = document.createElement("button");
-        b.type = "button";
-        b.className = "item";
-        b.innerHTML =
-          '<span class="left"><span class="ico"></span><span><span class="name"></span><span class="desc"></span></span></span>' +
-          '<span><span class="cost"></span><span class="owned"></span></span>';
-        b.querySelector(".ico").textContent = u.icon;
-        b.querySelector(".name").textContent = u.name;
-        b.querySelector(".desc").textContent = u.desc;
-        b.addEventListener("click", function () { buy(i); });
-        li.appendChild(b);
-        el.shop.appendChild(li);
-        return { btn: b, cost: b.querySelector(".cost"), owned: b.querySelector(".owned") };
-      });
-
-      // The cat room only redraws when something is bought, loaded or reset.
-      function renderRoom(newIndex) {
-        el.items.innerHTML = "";
-        var any = false;
-        upgrades.forEach(function (u, i) {
-          var n = state.owned[i];
-          if (!n) return;
-          any = true;
-          var row = document.createElement("div");
-          row.className = "row";
-          var icons = document.createElement("div");
-          icons.className = "icons";
-          icons.setAttribute("aria-hidden", "true");
-          var shown = Math.min(n, MAX_ICONS);
-          for (var k = 0; k < shown; k++) {
-            var s = document.createElement("span");
-            s.textContent = u.icon;
-            if (i === newIndex && k === shown - 1) s.className = "new";
-            icons.appendChild(s);
-          }
-          var count = document.createElement("span");
-          count.className = "count";
-          count.textContent = u.name + " x" + n;
-          row.appendChild(icons);
-          row.appendChild(count);
-          el.items.appendChild(row);
-        });
-        el.empty.hidden = any;
-      }
-
-      // Cat collection: with 0 rebirths only the cats you have reached show up,
-      // the rest are "?". After your first rebirth every cat is revealed.
-      function renderDex() {
-        var revealAll = state.rebirths >= 1;
-        var found = 0;
-        el.dex.innerHTML = "";
-        cats.forEach(function (c, i) {
-          var open = revealAll || i <= stageIndex;
-          if (i <= stageIndex) found++;
-          var li = document.createElement("li");
-          li.className = "dex-item" + (open ? "" : " locked") + (i === stageIndex ? " current" : "");
-          var name = document.createElement("span");
-          name.className = "dname";
-          var info = document.createElement("span");
-          info.className = "dinfo";
-          if (open) {
-            li.innerHTML = catSvg(c);
-            name.textContent = c.name;
-            info.textContent = i === stageIndex ? "Current" : (i < stageIndex ? "Unlocked" : c.at + " clicks");
-          } else {
-            var q = document.createElement("div");
-            q.className = "mystery";
-            q.textContent = "?";
-            q.setAttribute("aria-hidden", "true");
-            li.appendChild(q);
-            name.textContent = "???";
-            info.textContent = "Locked";
-          }
-          li.appendChild(name);
-          li.appendChild(info);
-          el.dex.appendChild(li);
-        });
-        el.dexCount.textContent = found + " / " + cats.length + " unlocked";
-      }
-
-      function renderCat() {
-        var c = cats[stageIndex];
-        el.name.textContent = c.name;
-        el.stage.textContent = "Cat " + (stageIndex + 1) + " of " + cats.length;
-        el.cat.innerHTML = catSvg(c);
-        el.cat.setAttribute("aria-label", "Pet " + c.name + " to earn fish");
-        renderDex();
-      }
-
-      function renderProgress() {
-        var nextCat = cats[stageIndex + 1];
-        var pct = 100;
-        if (nextCat) {
-          var from = cats[stageIndex].at;
-          pct = Math.min(100, ((state.clicks - from) / (nextCat.at - from)) * 100);
-          el.next.textContent = "Next: " + nextCat.name + " at " + nextCat.at + " clicks (" + state.clicks + "/" + nextCat.at + ")";
-        } else {
-          el.next.textContent = "Max level reached! " + state.clicks + " clicks.";
-        }
-        el.barFill.style.width = pct + "%";
-        el.barWrap.setAttribute("aria-valuenow", Math.round(pct));
-      }
-
-      function render() {
-        el.fish.textContent = fmt(state.fish);
-        el.perClick.textContent = fmt(perClick());
-        el.fps.textContent = fmt(perSecond());
-        el.bonus.textContent = "x" + multiplier().toFixed(1);
-        el.rebirthInfo.textContent = "Rebirths: " + state.rebirths + (canRebirth()
-          ? " | Ready! Next rebirth: x" + (multiplier() + REBIRTH_BONUS).toFixed(1) + " fish"
-          : " | Reach " + cats[cats.length - 1].name + " to rebirth");
-        el.rebirth.disabled = !canRebirth();
-        rows.forEach(function (row, i) {
-          var c = cost(i);
-          row.cost.textContent = fmt(c) + " fish";
-          row.owned.textContent = "Owned: " + state.owned[i];
-          row.btn.disabled = state.fish < c;
-        });
-        renderProgress();
-      }
-
-      function popText(text, x, y) {
-        var s = document.createElement("span");
-        s.className = "pop";
-        s.textContent = text;
-        s.style.left = x + "px";
-        s.style.top = y + "px";
-        el.stageBox.appendChild(s);
-        setTimeout(function () { s.remove(); }, 900);
-      }
-
-      function evolveIfReady() {
-        var s = stageFor(state.clicks);
-        if (s === stageIndex) return false;
-        var from = cats[stageIndex].name;
-        stageIndex = s;
-        renderCat();
-        say(from + " evolved into " + cats[s].name + "!");
-        el.cat.classList.remove("evolve");
-        void el.cat.offsetWidth; // restart the flash animation
-        el.cat.classList.add("evolve");
-        return true;
-      }
-
-      el.cat.addEventListener("click", function (e) {
-        var gain = perClick();
-        state.fish += gain;
-        state.clicks++;
-
-        var box = el.stageBox.getBoundingClientRect();
-        var x = e.clientX ? e.clientX - box.left : box.width / 2;
-        var y = e.clientY ? e.clientY - box.top : box.height / 2;
-        popText("+" + fmt(gain), x - 12, y - 24);
-
-        if (!evolveIfReady()) {
-          if (Math.floor(state.fish) === 67) say("67");
-          else say(pick(petLines));
-        }
-        render();
-      });
-
-      function buy(i) {
-        var c = cost(i);
-        if (state.fish < c) return;
-        state.fish -= c;
-        state.owned[i]++;
-        say(pick(buyLines));
-        renderRoom(i);
-        render();
-        save();
-        cloudSave();
-      }
-
-      // Passive fish: tick 10 times a second so the counter moves smoothly.
-      setInterval(function () {
-        var gain = perSecond() / 10;
-        if (gain > 0) { state.fish += gain; render(); }
-      }, 100);
-
-      function save() {
-        try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (e) { /* storage unavailable */ }
-      }
-
-      // Cloud backup (Firebase). Safe to fail: the game keeps working from localStorage.
-      function cloudSave() {
-        if (window.cloud) window.cloud.save(state).catch(function () { /* offline or blocked */ });
-      }
-
-      function load() {
-        try {
-          var raw = localStorage.getItem(SAVE_KEY);
-          if (!raw) return;
-          var data = JSON.parse(raw);
-          if (typeof data.fish === "number") state.fish = data.fish;
-          if (typeof data.clicks === "number") state.clicks = data.clicks;
-          if (typeof data.rebirths === "number") state.rebirths = data.rebirths;
-          if (Array.isArray(data.owned)) {
-            upgrades.forEach(function (u, i) { state.owned[i] = Number(data.owned[i]) || 0; });
-          }
-          say("Welcome back, hooman!");
-        } catch (e) { /* ignore a broken save */ }
-      }
-
-      el.rebirth.addEventListener("click", function () {
-        if (!canRebirth()) return;
-        if (!confirm("Rebirth? You lose all fish, upgrades and cat progress, but earn a permanent +" +
-          Math.round(REBIRTH_BONUS * 100) + "% fish bonus.")) return;
-        var rebirths = state.rebirths + 1;
-        state = fresh();
-        state.rebirths = rebirths;
-        stageIndex = 0;
-        say("Reborn! Fish bonus is now x" + multiplier().toFixed(1) + "! All cats are now visible in your collection.");
-        renderCat();
-        renderRoom();
-        render();
-        save();
-        cloudSave();
-      });
-
-      setInterval(save, 5000);
-      setInterval(cloudSave, 30000); // every 30s keeps you well inside the free write quota
-      window.addEventListener("beforeunload", save);
-
-      load();
-      stageIndex = stageFor(state.clicks);
-      renderCat();
-      renderRoom();
-      render();
-
-      // Once the page is fully loaded, pull the cloud save and keep whichever has more progress.
-      window.addEventListener("load", function () {
-        if (!window.cloud) return;
-        window.cloud.load().then(function (data) {
-          if (!data) { cloudSave(); return; }
-          var cloudScore = (Number(data.rebirths) || 0) * 1e9 + (Number(data.clicks) || 0);
-          var localScore = state.rebirths * 1e9 + state.clicks;
-          if (cloudScore <= localScore) { cloudSave(); return; }
-          state.fish = Number(data.fish) || 0;
-          state.clicks = Number(data.clicks) || 0;
-          state.rebirths = Number(data.rebirths) || 0;
-          upgrades.forEach(function (u, i) {
-            state.owned[i] = Array.isArray(data.owned) ? (Number(data.owned[i]) || 0) : 0;
-          });
-          stageIndex = stageFor(state.clicks);
-          say("Cloud save loaded!");
-          renderCat();
-          renderRoom();
-          render();
-          save();
-        }).catch(function () { /* offline: keep the local save */ });
-      });
-    })();
-  </script>
-</body>
-</html>
+        { name: "Mama", at: 1800, line:
