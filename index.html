@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Cat Clicker</title>
-  <meta name="description" content="Pet the cat to earn fish, buy upgrades and evolve your cat through six real rescue cats.">
+  <meta name="description" content="Pet the pixel cat to earn fish, buy upgrades and evolve through six cats.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
@@ -44,7 +44,7 @@
 
     .wrap { max-width: 900px; margin: 0 auto; padding: 24px; display: grid; gap: 28px; }
 
-    h1, h2, .pixel { font-family: "Pixelify Sans", monospace; }
+    h1, h2 { font-family: "Pixelify Sans", monospace; }
     h1 {
       margin: 0;
       font-size: clamp(2.2rem, 8vw, 3.4rem);
@@ -77,24 +77,31 @@
 
     /* Cat and room side by side */
     .arena { display: flex; gap: 20px; align-items: stretch; }
-    .cat-col { flex: 0 0 280px; }
+    .cat-col { flex: 0 0 270px; }
     .cat-name { margin: 0 0 8px; font-family: "Pixelify Sans", monospace; font-weight: 700; font-size: 1.4rem; line-height: 1.2; }
     .cat-name small { display: block; font-size: 0.85rem; font-weight: 500; color: var(--mint); }
 
     .stage { position: relative; }
-    .cat-btn { display: block; width: 100%; padding: 0; background: none; border: 0; cursor: pointer; line-height: 0; -webkit-tap-highlight-color: transparent; user-select: none; }
-    .cat-btn img {
+    .cat-btn {
       display: block;
       width: 100%;
-      aspect-ratio: 1;
-      object-fit: cover;
-      background: var(--bg);
+      padding: 12px;
+      background: var(--panel-2);
       border: 4px solid var(--edge);
       box-shadow: 6px 6px 0 var(--moon);
+      cursor: pointer;
+      line-height: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
     }
-    .cat-btn:active img { transform: scale(0.97); }
-    .cat-btn.evolve img { animation: flash 0.9s steps(6); }
-    @keyframes flash { 0%, 100% { filter: none; } 20%, 60% { filter: brightness(3) saturate(0); } 40%, 80% { filter: brightness(0.3); } }
+    .art { display: block; width: 100%; height: auto; aspect-ratio: 1; shape-rendering: crispEdges; }
+    .art .eye { transform-box: fill-box; transform-origin: center; animation: blink 5s infinite; }
+    .art .tail { transform-box: fill-box; transform-origin: bottom left; animation: wag 2.4s ease-in-out infinite; }
+    .cat-btn:active .art { transform: scale(0.95); }
+    .cat-btn.evolve .art { animation: flash 0.9s steps(6); }
+    @keyframes blink { 0%, 94%, 100% { transform: scaleY(1); } 97% { transform: scaleY(0.1); } }
+    @keyframes wag { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-12deg); } }
+    @keyframes flash { 0%, 100% { filter: none; } 20%, 60% { filter: brightness(4) saturate(0); } 40%, 80% { filter: brightness(0.3); } }
 
     .pop {
       position: absolute;
@@ -116,9 +123,9 @@
       flex: 1;
       min-width: 0;
       padding: 14px;
-      background: var(--bg);
-      border: 4px solid var(--edge);
+      background-color: var(--bg);
       background-image: repeating-linear-gradient(0deg, transparent 0 31px, rgba(195,189,240,0.12) 31px 32px);
+      border: 4px solid var(--edge);
     }
     .room h2 { font-size: 1.15rem; margin-bottom: 10px; color: var(--moon); }
     .room .empty { margin: 0; color: var(--muted); font-size: 0.95rem; }
@@ -148,12 +155,12 @@
     .item:hover:not(:disabled) { background: var(--bg); border-color: var(--moon); }
     .item:active:not(:disabled) { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--edge); }
     .item:disabled { opacity: 0.55; cursor: not-allowed; }
+    .item .left { display: flex; align-items: center; gap: 10px; }
     .item .ico { font-size: 1.8rem; line-height: 1; }
     .item .name { display: block; font-family: "Pixelify Sans", monospace; font-weight: 700; font-size: 1.15rem; }
     .item .desc { display: block; font-size: 0.9rem; color: var(--muted); }
     .item .cost { display: block; font-family: "Pixelify Sans", monospace; color: var(--moon); white-space: nowrap; text-align: right; }
     .item .owned { display: block; font-size: 0.9rem; color: var(--mint); text-align: right; }
-    .item .left { display: flex; align-items: center; gap: 10px; }
 
     .tools { display: flex; justify-content: space-between; align-items: center; margin-top: 18px; gap: 12px; flex-wrap: wrap; }
     .tools small { color: var(--muted); }
@@ -171,13 +178,13 @@
     @media (max-width: 720px) {
       .wrap { padding: 16px; }
       .arena { flex-direction: column; }
-      .cat-col { flex-basis: auto; }
+      .cat-col { flex-basis: auto; max-width: 320px; }
       .shop { grid-template-columns: 1fr; }
     }
 
     @media (prefers-reduced-motion: reduce) {
       .pop { animation-duration: 0.01s; }
-      .cat-btn.evolve img, .row .icons .new { animation: none; }
+      .art .eye, .art .tail, .cat-btn.evolve .art, .row .icons .new { animation: none; }
     }
   </style>
 </head>
@@ -198,9 +205,7 @@
         <div class="cat-col">
           <p class="cat-name"><span id="catName">Minimeow</span><small id="stage">Cat 1 of 6</small></p>
           <div class="stage" id="stageBox">
-            <button class="cat-btn" id="cat" type="button" aria-label="Pet the cat to earn fish">
-              <img id="catImg" src="images/Minimeow.jpg" alt="Minimeow, a sleepy tabby kitten" width="480" height="480">
-            </button>
+            <button class="cat-btn" id="cat" type="button" aria-label="Pet the cat to earn fish"></button>
           </div>
           <div class="bar" role="progressbar" aria-label="Progress to the next cat" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="barWrap"><i id="barFill"></i></div>
           <p class="next" id="next"></p>
@@ -226,18 +231,26 @@
 
   <script>
     (function () {
-      var SAVE_KEY = "catClickerSave2";
+      var SAVE_KEY = "catClickerSave3";
       var GROWTH = 1.15;
       var MAX_ICONS = 10; // icons drawn per item before it switches to a count
 
-      // Cats evolve by number of clicks. Edit "at" to change how fast.
+      // Each cat has its own colours. "at" is the number of clicks needed to reach it.
+      // line = outline, fur = main colour, dark = stripes, light = white patches,
+      // hi = shine on black fur, paw = paw colour, ear/nose/eye = face colours.
       var cats = [
-        { name: "Minimeow", file: "Minimeow", at: 0,    alt: "Minimeow, a sleepy tabby kitten" },
-        { name: "Mimi",     file: "Mimi",     at: 50,   alt: "Mimi, a fluffy grey cat sleeping on a lap" },
-        { name: "Kuro",     file: "Kuro",     at: 150,  alt: "Kuro, a black cat curled up with a plush toy" },
-        { name: "Taro",     file: "Taro",     at: 400,  alt: "Taro, a fluffy black kitten looking up" },
-        { name: "Ah Wang",  file: "AhWang",   at: 900,  alt: "Ah Wang, a tabby cat sitting up straight" },
-        { name: "Fatty Cat", file: "FattyCat", at: 2000, alt: "Fatty Cat, a big tabby lying on the floor" }
+        { name: "Minimeow", at: 0, line: "#0f0d26", fur: "#b8a06c", dark: "#5a4630", light: "#efe3c8", paw: "#b8a06c",
+          ear: "#d9a28f", nose: "#d98a7a", eye: "#a9b04a", eyeH: 1, stripes: 1, chin: 1 },
+        { name: "Mimi", at: 50, line: "#0f0d26", fur: "#80829a", light: "#b9bbcc", paw: "#80829a",
+          ear: "#5b5d70", nose: "#4b4b5e", eye: "#0f0d26", eyeH: 1, tufts: 1, chest: 1 },
+        { name: "Kuro", at: 150, line: "#0f0d26", fur: "#2e2e3d", hi: "#47475f", paw: "#2e2e3d",
+          ear: "#5a4658", nose: "#6b5b6b", eye: "#e5c14a", eyeH: 2 },
+        { name: "Taro", at: 400, line: "#0f0d26", fur: "#232331", hi: "#3d3d56", paw: "#232331",
+          ear: "#4a3a4a", nose: "#4a3a4a", eye: "#f0a830", eyeH: 2, tufts: 1 },
+        { name: "Ah Wang", at: 900, line: "#0f0d26", fur: "#a8824f", dark: "#4a3520", light: "#e8d9bd", paw: "#a8824f",
+          ear: "#d9a28f", nose: "#d98a7a", eye: "#8fa845", eyeH: 2, stripes: 1, chin: 1 },
+        { name: "Fatty Cat", at: 2000, line: "#0f0d26", fur: "#6d6556", dark: "#2c2822", light: "#f4f1ea", paw: "#f4f1ea",
+          ear: "#d9a28f", nose: "#d98a7a", eye: "#9ab04a", eyeH: 2, stripes: 1, blaze: 1, chin: 1, chest: 1, wide: 1 }
       ];
 
       // To add an upgrade, add one line here. "icon" is what appears in the cat room.
@@ -253,6 +266,42 @@
       var petLines = ["Meow!", "Purr...", "More fish!", "Mrrp?", "Nyan!", "Nice pets!", "Right there!"];
       var buyLines = ["Thank you, hooman!", "Ooh, shiny!", "Purrfect choice.", "I approve."];
 
+      // Draws a 16 by 16 pixel cat from a colour set.
+      function r(x, y, w, h, c, cls) {
+        return '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" fill="' + c + '"' + (cls ? ' class="' + cls + '"' : "") + "/>";
+      }
+      function catSvg(p) {
+        var L = p.line, d = p.dark, bx = p.wide ? 2 : 3, bw = p.wide ? 12 : 10;
+        var s = '<svg class="art" viewBox="0 0 16 16" aria-hidden="true">';
+        // outline
+        s += r(2, 0, 3, 3, L) + r(11, 0, 3, 3, L) + r(2, 2, 12, 8, L) + r(bx, 10, bw, 5, L);
+        if (p.tufts) s += r(1, 6, 1, 3, L) + r(14, 6, 1, 3, L);
+        // tail (wags)
+        s += '<g class="tail">' + r(13, 11, 3, 4, L) + r(14, 8, 2, 4, L) + r(14, 12, 1, 2, p.fur) + r(15, 9, 1, 3, p.fur);
+        if (p.stripes) s += r(14, 13, 1, 1, d) + r(15, 10, 1, 1, d);
+        s += "</g>";
+        // fur
+        s += r(3, 1, 2, 2, p.fur) + r(11, 1, 2, 2, p.fur) + r(3, 3, 10, 6, p.fur) + r(bx + 1, 10, bw - 2, 4, p.fur);
+        s += r(4, 2, 1, 1, p.ear) + r(11, 2, 1, 1, p.ear);
+        if (p.tufts) s += r(2, 6, 1, 3, p.fur) + r(13, 6, 1, 3, p.fur);
+        if (p.hi) s += r(4, 3, 3, 1, p.hi) + r(10, 3, 2, 1, p.hi) + r(5, 11, 2, 1, p.hi) + r(9, 12, 2, 1, p.hi);
+        if (p.stripes) {
+          s += r(7, 3, 2, 1, d) + r(6, 4, 1, 1, d) + r(9, 4, 1, 1, d) + r(3, 6, 1, 1, d) + r(12, 6, 1, 1, d);
+          s += r(5, 10, 1, 2, d) + r(7, 10, 1, 2, d) + r(9, 10, 1, 2, d) + r(11, 10, 1, 2, d);
+        }
+        // white patches and paws
+        if (p.blaze) s += r(7, 3, 2, 4, p.light);
+        if (p.chin) s += r(6, 8, 4, 1, p.light);
+        if (p.chest) s += r(6, 10, 4, 3, p.light);
+        var pl = p.wide ? 3 : 4, pr = p.wide ? 10 : 9;
+        s += r(pl, 14, 3, 1, p.paw) + r(pr, 14, 3, 1, p.paw);
+        // face
+        var ey = p.eyeH === 2 ? 5 : 6;
+        s += r(5, ey, 2, p.eyeH, p.eye, "eye") + r(9, ey, 2, p.eyeH, p.eye, "eye");
+        s += r(7, 7, 2, 1, p.nose);
+        return s + "</svg>";
+      }
+
       function fresh() { return { fish: 0, clicks: 0, owned: upgrades.map(function () { return 0; }) }; }
       var state = fresh();
       var stageIndex = 0;
@@ -260,7 +309,7 @@
       var $ = function (id) { return document.getElementById(id); };
       var el = {
         fish: $("fish"), perClick: $("perClick"), fps: $("fps"), bubble: $("bubble"),
-        stageBox: $("stageBox"), cat: $("cat"), img: $("catImg"), name: $("catName"), stage: $("stage"),
+        stageBox: $("stageBox"), cat: $("cat"), name: $("catName"), stage: $("stage"),
         barFill: $("barFill"), barWrap: $("barWrap"), next: $("next"),
         items: $("items"), empty: $("empty"), shop: $("shop"), reset: $("reset")
       };
@@ -293,9 +342,6 @@
         cats.forEach(function (c, i) { if (clicks >= c.at) s = i; });
         return s;
       }
-
-      // Preload the photos so evolving never flickers.
-      cats.forEach(function (c) { var im = new Image(); im.src = "images/" + c.file + ".jpg"; });
 
       // Shop buttons are built once, then only their text is updated.
       var rows = upgrades.map(function (u, i) {
@@ -349,8 +395,8 @@
         var c = cats[stageIndex];
         el.name.textContent = c.name;
         el.stage.textContent = "Cat " + (stageIndex + 1) + " of " + cats.length;
-        el.img.src = "images/" + c.file + ".jpg";
-        el.img.alt = c.alt;
+        el.cat.innerHTML = catSvg(c);
+        el.cat.setAttribute("aria-label", "Pet " + c.name + " to earn fish");
       }
 
       function renderProgress() {
@@ -371,11 +417,11 @@
         el.fish.textContent = fmt(state.fish);
         el.perClick.textContent = fmt(perClick());
         el.fps.textContent = fmt(perSecond());
-        rows.forEach(function (r, i) {
+        rows.forEach(function (row, i) {
           var c = cost(i);
-          r.cost.textContent = fmt(c) + " fish";
-          r.owned.textContent = "Owned: " + state.owned[i];
-          r.btn.disabled = state.fish < c;
+          row.cost.textContent = fmt(c) + " fish";
+          row.owned.textContent = "Owned: " + state.owned[i];
+          row.btn.disabled = state.fish < c;
         });
         renderProgress();
       }
